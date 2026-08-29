@@ -116,10 +116,11 @@ if user_input:
         placeholder.markdown("_thinking…_")
         full_response = ""
 
-                resp = requests.post(
+        resp = requests.post(
             f"{BACKEND_URL}/chat",
             json={"message": user_input, "history": st.session_state.history[:-1]},
             stream=True,
+            timeout=90,
         )
 
         if resp.status_code != 200:
