@@ -1,12 +1,14 @@
 import os
 import json
+from pathlib import Path
 import httpx
 from dotenv import load_dotenv
 
-load_dotenv()
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 API_KEY = os.getenv("OPENROUTER_API_KEY")
-MODEL = "nvidia/nemotron-3-nano-30b-a3b:free"
+MODEL = "nvidia/nemotron-3.5-lightning:free"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
@@ -26,7 +28,7 @@ async def stream_chat_completion(messages: list[dict]):
         "messages": messages,
         "stream": True,
         "temperature": 0.7,
-        "max_tokens": 1024,
+        "max_tokens": 2048,
     }
 
     async with httpx.AsyncClient(timeout=60.0) as client:
