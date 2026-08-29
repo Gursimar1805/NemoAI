@@ -116,28 +116,32 @@ if user_input:
         placeholder.markdown("_thinking…_")
         full_response = ""
 
-        resp = requests.post(
+                resp = requests.post(
             f"{BACKEND_URL}/chat",
             json={"message": user_input, "history": st.session_state.history[:-1]},
             stream=True,
         )
 
-        for line in resp.iter_lines():
-            if not line:
-                continue
-            line = line.decode("utf-8")
-            if line.startswith("data: "):
-                data = json.loads(line[6:])
-                if "error" in data:
-                    placeholder.error(f"Backend error: {data['error']}")
-                    full_response = None
-                    break
-                if "content" in data:
-                    full_response += data["content"]
-                    placeholder.markdown(full_response + " ▌")
+        if resp.status_code != 200:
+            placeholder.error(f"Connection failed: HTTP {resp.status_code} — {resp.text[:200]}")
+            full_response = None
+        else:
+            for line in resp.iter_lines():
+                if not line:
+                    continue
+                line = line.decode("utf-8")
+                if line.startswith("data: "):
+                    data = json.loads(line[6:])
+                    if "error" in data:
+                        placeholder.error(f"Backend error: {data['error']}")
+                        full_response = None
+                        break
+                    if "content" in data:
+                        full_response += data["content"]
+                        placeholder.markdown(full_response + " ▌")
 
-        if full_response is not None:
-            placeholder.markdown(full_response)
+            if full_response is not None:
+                placeholder.markdown(full_response)
 
     if full_response is not None:
         st.session_state.history.append({"role": "assistant", "content": full_response})
